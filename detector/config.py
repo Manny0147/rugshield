@@ -5,6 +5,12 @@ from functools import lru_cache
 from dataclasses import dataclass
 
 
+DEFAULT_RPC = {
+    "ethereum": "https://eth-mainnet.g.alchemy.com/v2/alch_qpK0fT8P9bvtEdNKUCbym",
+    "bsc": "https://bsc-dataseed.binance.org/",
+}
+
+
 @dataclass
 class Settings:
     eth_rpc_url: str = "https://eth-mainnet.g.alchemy.com/v2/alch_qpK0fT8P9bvtEdNKUCbym"
