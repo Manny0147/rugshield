@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { WalletPanel } from "@/components/WalletPanel";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -87,8 +88,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#07080d] text-zinc-100 p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">RugShield</h1>
-        <p className="text-zinc-500 text-sm mb-6">Token risk & honeypot scanner</p>
+        <header className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">RugShield</h1>
+            <p className="text-zinc-500 text-sm">Token risk & honeypot scanner</p>
+          </div>
+          <WalletPanel onSelectToken={(addr) => { setAddress(addr); setSelectedToken(null); }} />
+        </header>
 
         <div className="flex gap-3 overflow-x-auto pb-4 mb-6">
           {POPULAR_TOKENS.map((t) => (
