@@ -31,7 +31,6 @@ function decodeString(hex: string): string | undefined {
   if (!hex || hex === "0x") return undefined;
   try {
     const data = hex.slice(2);
-    // dynamic string: offset + length + bytes
     if (data.length < 128) return undefined;
     const len = parseInt(data.slice(64, 128), 16);
     const strHex = data.slice(128, 128 + len * 2);
@@ -73,7 +72,6 @@ export async function POST(req: NextRequest) {
     const findings: { severity: string; category: string; issue: string; details?: string }[] = [];
     let score = 0;
 
-    // bytecode
     const code = await rpc("eth_getCode", [address, "latest"]);
     if (!code || code === "0x" || code === "0x0") {
       findings.push({
@@ -85,7 +83,6 @@ export async function POST(req: NextRequest) {
       score += 40;
     }
 
-    // name / symbol / decimals / owner via eth_call
     const [nameHex, symbolHex, decimalsHex, ownerHex] = await Promise.all([
       rpc("eth_call", [{ to: address, data: "0x06fdde03" }, "latest"]).catch(() => "0x"),
       rpc("eth_call", [{ to: address, data: "0x95d89b41" }, "latest"]).catch(() => "0x"),
@@ -98,7 +95,7 @@ export async function POST(req: NextRequest) {
     const decimals = decodeUint(decimalsHex);
     const owner = decodeAddress(ownerHex);
     const renounced =
-      owner &&
+      !!owner &&
       (owner.toLowerCase() === ZERO.toLowerCase() || owner.toLowerCase() === DEAD.toLowerCase());
 
     if (owner && !renounced) {
@@ -111,17 +108,13 @@ export async function POST(req: NextRequest) {
       score += 12;
     }
 
-    // Uniswap V2 pair
     let hasLiquidity = false;
     let pairAddress: string | undefined;
     let burnedPct = 0;
     let isLpLocked = false;
 
     try {
-      const getPairData =
-        "0xe6a43905" +
-        padAddress(address) +
-        padAddress(WETH);
+      const getPairData = "0xe6a43905" + padAddress(address) + padAddress(WETH);
       const pairHex = await rpc("eth_call", [
         { to: UNISWAP_FACTORY, data: getPairData },
         "latest",
@@ -143,8 +136,8 @@ export async function POST(req: NextRequest) {
         ]);
         const total = BigInt(totalHex || "0x0");
         const burned = BigInt(deadBalHex || "0x0") + BigInt(zeroBalHex || "0x0");
-        if (total > 0n) {
-          burnedPct = Number((burned * 10000n) / total) / 100;
+        if (total > BigInt(0)) {
+          burnedPct = Number((burned * BigInt(10000)) / total) / 100;
           isLpLocked = burnedPct >= 95;
         }
         if (!isLpLocked) {
@@ -173,15 +166,13 @@ export async function POST(req: NextRequest) {
       score += 8;
     }
 
-    // Honeypot-ish: getAmountsOut buy + sell
-    let honeypot: Record<string, unknown> = {
+    const honeypot: Record<string, unknown> = {
       method: "eth_call_router",
       can_buy: false,
       can_sell: false,
     };
     try {
-      const amountIn = "0x" + (10n ** 16n).toString(16); // 0.01 ETH
-      // getAmountsOut(uint256,address[]) selector 0xd06ca61f
+      const amountIn = "0x" + BigInt("10000000000000000").toString(16);
       const pathBuy =
         "0xd06ca61f" +
         amountIn.slice(2).padStart(64, "0") +
@@ -192,7 +183,6 @@ export async function POST(req: NextRequest) {
       const outBuy = await rpc("eth_call", [{ to: ROUTER, data: pathBuy }, "latest"]);
       if (outBuy && outBuy !== "0x" && outBuy.length > 130) {
         honeypot.can_buy = true;
-        // last amount is at the end of the dynamic array
         const tokensOut = "0x" + outBuy.slice(-64);
         const pathSell =
           "0xd06ca61f" +
@@ -203,7 +193,7 @@ export async function POST(req: NextRequest) {
           padAddress(WETH);
         try {
           const outSell = await rpc("eth_call", [{ to: ROUTER, data: pathSell }, "latest"]);
-          if (outSell && outSell !== "0x" && BigInt("0x" + outSell.slice(-64)) > 0n) {
+          if (outSell && outSell !== "0x" && BigInt("0x" + outSell.slice(-64)) > BigInt(0)) {
             honeypot.can_sell = true;
           } else {
             honeypot.error = "Sell path returns zero";
@@ -261,7 +251,7 @@ export async function POST(req: NextRequest) {
           symbol: symbol || "?",
           decimals,
           owner,
-          ownership_renounced: renounced ?? null,
+          ownership_renounced: renounced,
         },
         liquidity: {
           has_liquidity: hasLiquidity,
