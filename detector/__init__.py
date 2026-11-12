@@ -1,3 +1,3 @@
-from .detector import RugPullDetector
-from .honeypot import simulate_honeypot
-from .models import RiskReport, Finding, Severity
+"""Rug Pull Detector - Production-grade token contract analyzer."""
+
+__version__ = "1.0.0"
