@@ -10,12 +10,92 @@ SIGNATURES: dict[str, str] = {
     "0x23b872dd": "transferFrom(address,address,uint256)",
     "0x095ea7b3": "approve(address,uint256)",
     "0x70a08231": "balanceOf(address)",
-    "0x18160ddd": "totalSupply()",
     "0xdd62ed3e": "allowance(address,address)",
     "0x06fdde03": "name()",
     "0x95d89b41": "symbol()",
     "0x313ce567": "decimals()",
+    "0x18160ddd": "totalSupply()",
+    "0x5c60da1b": "implementation()",
+    "0x36084569": "upgradeTo(address)",
+    "0x3659cfe6": "upgradeToAndCall(address,bytes)",
 }
+
+DEX_ROUTERS: dict[str, dict[str, str]] = {
+    "ethereum": {
+        "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D": "UniswapV2Router",
+        "0xE592427A0AEce92De3Edee1F18E0157C05861564": "UniswapV3Router",
+        "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45": "UniswapV3Router02",
+    },
+    "bsc": {
+        "0x10ED43C718714eb63d5aA57B78B54704E256024E": "PancakeSwapV2Router",
+        "0x13f4EA83D0bd40E75C8222255bc855a974568Dd4": "PancakeSwapV3Router",
+    },
+}
+
+FACTORIES: dict[str, dict[str, str]] = {
+    "ethereum": {
+        "uniswap_v2": "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f",
+        "sushiswap": "0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac",
+    },
+    "bsc": {
+        "pancakeswap_v2": "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73",
+    },
+}
+
+WRAPPED_NATIVE: dict[str, str] = {
+    "ethereum": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    "bsc": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+}
+
+DEAD_ADDRESSES = [
+    "0x0000000000000000000000000000000000000000",
+    "0x000000000000000000000000000000000000dEaD",
+    "0x000000000000000000000000000000000000dead",
+    "0xdead000000000000000000000000000000000000",
+]
+
+RENOUNCED_OWNERS = set(DEAD_ADDRESSES)
+
+ERC20_ABI = [
+    {"constant": True, "inputs": [], "name": "name", "outputs": [{"name": "", "type": "string"}], "type": "function"},
+    {"constant": True, "inputs": [], "name": "symbol", "outputs": [{"name": "", "type": "string"}], "type": "function"},
+    {"constant": True, "inputs": [], "name": "decimals", "outputs": [{"name": "", "type": "uint8"}], "type": "function"},
+    {"constant": True, "inputs": [], "name": "totalSupply", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
+    {"constant": True, "inputs": [{"name": "account", "type": "address"}], "name": "balanceOf", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
+    {"constant": True, "inputs": [], "name": "owner", "outputs": [{"name": "", "type": "address"}], "type": "function"},
+]
+
+OWNABLE_ABI = [
+    {"constant": True, "inputs": [], "name": "owner", "outputs": [{"name": "", "type": "address"}], "type": "function"},
+]
+
+FACTORY_ABI = [
+    {
+        "constant": True,
+        "inputs": [{"name": "tokenA", "type": "address"}, {"name": "tokenB", "type": "address"}],
+        "name": "getPair",
+        "outputs": [{"name": "pair", "type": "address"}],
+        "type": "function",
+    }
+]
+
+PAIR_ABI = [
+    {"constant": True, "inputs": [], "name": "totalSupply", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
+    {"constant": True, "inputs": [{"name": "account", "type": "address"}], "name": "balanceOf", "outputs": [{"name": "", "type": "uint256"}], "type": "function"},
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "getReserves",
+        "outputs": [
+            {"name": "reserve0", "type": "uint112"},
+            {"name": "reserve1", "type": "uint112"},
+            {"name": "blockTimestampLast", "type": "uint32"},
+        ],
+        "type": "function",
+    },
+    {"constant": True, "inputs": [], "name": "token0", "outputs": [{"name": "", "type": "address"}], "type": "function"},
+    {"constant": True, "inputs": [], "name": "token1", "outputs": [{"name": "", "type": "address"}], "type": "function"},
+]
 
 EIP1967_IMPLEMENTATION_SLOT = "360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
 
@@ -30,14 +110,4 @@ PUBLIC_RPCS = {
         "https://bsc-dataseed.binance.org/",
         "https://rpc.ankr.com/bsc",
     ],
-}
-
-RENOUNCED_OWNERS = {
-    "0x0000000000000000000000000000000000000000",
-    "0x000000000000000000000000000000000000dead",
-}
-
-WRAPPED_NATIVE = {
-    "ethereum": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-    "bsc": "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
 }
